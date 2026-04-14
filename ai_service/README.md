@@ -1,7 +1,7 @@
 ***
+## 🤖 AI Chat Sentiment Analysis Service
 
-```markdown
-# 🤖 AI Chat Sentiment Analysis Service
+
 
 Đây là một Microservice độc lập chuyên xử lý và phân loại cảm xúc văn bản (Sentiment Analysis) sử dụng thuật toán **Logistic Regression tự viết (From Scratch)**. 
 
@@ -157,5 +157,4 @@ fetch('http://localhost:5000/api/ai-chat', {
 curl -X POST http://localhost:5000/api/ai-chat \
      -H "Content-Type: application/json" \
      -d "{\"message\": \"sản phẩm quá tệ\"}"
-```
 ```
