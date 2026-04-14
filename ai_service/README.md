@@ -1,5 +1,3 @@
-
-
 ***
 
 ```markdown
@@ -7,7 +5,7 @@
 
 Đây là một Microservice độc lập chuyên xử lý và phân loại cảm xúc văn bản (Sentiment Analysis) sử dụng thuật toán **Logistic Regression tự viết (From Scratch)**. 
 
-Service này được thiết kế theo chuẩn API RESTful, có thể kết nối với **BẤT KỲ** Backend (Node.js, Java, PHP, Python...) hay Frontend (React, Vue, Angular, Mobile App...) nào.
+Service này được thiết kế theo chuẩn API RESTful, có thể giao tiếp độc lập với **BẤT KỲ** hệ thống Backend (Java, C#, C++, Node.js...) hay Frontend (React, Vue, Mobile App...) nào thông qua giao thức HTTP.
 
 ---
 
@@ -62,57 +60,102 @@ Bất kỳ hệ thống nào muốn sử dụng AI đều chỉ cần gọi HTTP
 
 ---
 
-## 🔗 4. Hướng dẫn kết nối từ các ngôn ngữ/Hệ thống khác
+## 🔗 4. Hướng dẫn kết nối từ các ngôn ngữ Backend khác
 
-Module này không kén nền tảng. Dưới đây là các ví dụ code copy-paste để kết nối ngay lập tức:
+Module AI này đóng vai trò như một máy chủ độc lập. Dưới đây là các ví dụ code copy-paste để Backend chính của dự án kết nối sang AI:
 
-### Cách 1: Gọi từ Node.js (Backend) dùng Axios
-```javascript
-const axios = require('axios');
+### ☕ Cấu hình cho Backend JAVA (Sử dụng `java.net.http.HttpClient` - Java 11+)
+```java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
-async function askAI(userText) {
-    try {
-        const response = await axios.post('http://localhost:5000/api/ai-chat', {
-            message: userText
-        });
-        console.log("AI Trả lời:", response.data.reply);
-    } catch (error) {
-        console.error("Lỗi gọi AI:", error.message);
+public class AIChatClient {
+    public static void main(String[] args) throws Exception {
+        String jsonInput = "{\"message\": \"Sản phẩm này rất tuyệt vời\"}";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:5000/api/ai-chat"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonInput))
+                .build();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        System.out.println("AI Phản hồi: " + response.body());
     }
 }
-askAI("màn hình rất tuyệt");
 ```
 
-### Cách 2: Gọi trực tiếp từ Frontend (React/Vanilla JS) dùng Fetch
-*Lưu ý: API đã được bật sẵn CORS nên Frontend có thể gọi trực tiếp không bị chặn.*
+### 🔷 Cấu hình cho Backend C# .NET (Sử dụng `HttpClient`)
+```csharp
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+class Program {
+    static async Task Main() {
+        using var client = new HttpClient();
+        var json = "{\"message\": \"màn hình này dùng chán quá\"}";
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync("http://localhost:5000/api/ai-chat", content);
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        Console.WriteLine("AI Phản hồi: " + responseString);
+    }
+}
+```
+
+### ⚙️ Cấu hình cho Backend C++ (Sử dụng thư viện `libcurl`)
+```cpp
+#include <iostream>
+#include <curl/curl.h>
+
+int main(void) {
+  CURL *curl = curl_easy_init();
+  if(curl) {
+    // URL của module AI
+    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:5000/api/ai-chat");
+    
+    // Headers
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    
+    // Body (JSON)
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"message\": \"tốc độ xử lý rất nhanh và mượt\"}");
+
+    // Gửi Request
+    CURLcode res = curl_easy_perform(curl);
+    
+    // Dọn dẹp
+    curl_easy_cleanup(curl);
+  }
+  return 0;
+}
+```
+
+### 🌐 Kết nối trực tiếp từ Frontend (React / Vite / Vanilla JS)
+*Lưu ý: API AI đã được bật sẵn thư viện CORS nên Frontend có thể gọi trực tiếp thông qua Fetch API.*
 ```javascript
 fetch('http://localhost:5000/api/ai-chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: "dùng chán quá, hay bị lỗi" })
+    body: JSON.stringify({ message: "dịch vụ ok, ngon lành" })
 })
 .then(res => res.json())
-.then(data => alert(data.reply))
-.catch(err => console.log("Lỗi:", err));
+.then(data => console.log(data.reply))
+.catch(err => console.error("Lỗi:", err));
 ```
 
-### Cách 3: Gọi từ một Backend Python khác (dùng thư viện requests)
-```python
-import requests
-
-url = "http://localhost:5000/api/ai-chat"
-data = {"message": "Dịch vụ ok, ngon lành"}
-
-response = requests.post(url, json=data)
-print(response.json()["reply"])
-```
-
-### Cách 4: Test nhanh qua Terminal (cURL)
+### 💻 Test nhanh qua Terminal (Sử dụng cURL)
 ```bash
 curl -X POST http://localhost:5000/api/ai-chat \
      -H "Content-Type: application/json" \
-     -d '{"message": "sản phẩm tuyệt vời"}'
+     -d "{\"message\": \"sản phẩm quá tệ\"}"
 ```
 ```
-
-Vậy là hoàn tất! Với file này, bộ code Python AI của bạn đã trở thành một Microservice đóng gói hoàn chỉnh. Bất cứ ai tham gia vào project đều có thể đọc file này và tự biết cách gửi dữ liệu sang AI của bạn mà không sợ làm hỏng code gốc.
